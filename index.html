@@ -1,7 +1,29 @@
 <html>
 
 <body>
-<h1>PED</h1>
+
+<canvas id="myCanvas" width="300" height="300" style="border:1px solid #d3d3d3;">
+your browser does not support the canvas tag </canvas>
+
+<script type="text/javascript">
+  var width = 300;
+  var height = 300;
+
+  var c=document.getElementById("myCanvas");
+  var ctx=c.getContext("2d");
+  var imgData=ctx.createImageData(width,height);
+  
+  for (i=0; i < imgData.width*imgData.height*4; i+=4) {
+    var val = (((i % width) % 3) == 0) ? 255 : 0;
+    imgData[i+0] = ; // red
+    imgData[i+1] = ; // green
+    imgData[i+2] = ; // blue
+    imgData[i+3] = 255; // alpha
+  }
+  
+  ctx.putImageData(imgData,0,0);
+</script>  
+  
 </body>
 
 </html>
