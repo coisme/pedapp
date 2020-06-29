@@ -6,15 +6,15 @@
 your browser does not support the canvas tag </canvas>
 
 <script type="text/javascript">
-  var width = 300;
-  var height = 300;
+  var width = 600;
+  var height = 600;
 
   var c=document.getElementById("myCanvas");
   var ctx=c.getContext("2d");
   var imgData=ctx.createImageData(width,height);
   
   for (i=0; i < imgData.width*imgData.height*4; i+=4) {
-    var val = (((i/4 % width) % 2) == 0) ? 255 : 0;
+    var val = (((i/4 % width) % 2) == 0) ? 255 : 128;
     imgData.data[i+0] = val; // red
     imgData.data[i+1] = val; // green
     imgData.data[i+2] = val; // blue
