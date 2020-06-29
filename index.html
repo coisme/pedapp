@@ -14,8 +14,7 @@ your browser does not support the canvas tag </canvas>
   var imgData=ctx.createImageData(width,height);
   
   for (i=0; i < imgData.width*imgData.height*4; i+=4) {
-//    var val = (((i/4 % width) % 3) == 0) ? 255 : 0;
-    var val = 55;
+    var val = (((i/4 % width) % 3) == 0) ? 255 : 0;
     imgData[i+0] = val; // red
     imgData[i+1] = val; // green
     imgData[i+2] = val; // blue
