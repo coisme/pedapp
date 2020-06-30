@@ -49,12 +49,12 @@
       canvas.style.height = height + "px";
 
       // Set physical canvas size
-      var scale = window.devicePixelRatio;
+      var scale = window.devicePixelRatio || 1;
       canvas.width = width * scale;
       canvas.height = height * scale;
-      
-//      ctx.scale(scale, scale);
 
+      ctx.scale(scale,scale);
+      
       var imgData = ctx.createImageData(canvas.width, canvas.height);
     
       // get line color
@@ -68,7 +68,6 @@
 
       // draw
       for (i=0; i < imgData.width; i++) {
-//        var pixelColor = ((i % (line1width + line2width)) < line1width) ? line1color : line2color;
         var pixelColor = ((i % (line1width+line2width)) < line1width) ? line1color : line2color;
         for (j=0; j < imgData.height; j++) {
           // pixelColor contains "#RRGGBB" string
