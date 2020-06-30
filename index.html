@@ -2,27 +2,89 @@
 
 <body>
 
-<canvas id="myCanvas" width="600" height="600" style="border:1px solid #d3d3d3;">
-your browser does not support the canvas tag </canvas>
+  <div style="margin-bottom: 15px;">
+    <img src="https://www.asahi-kasei.com/common/images/logo-01.png" height="20" />
+  </div>
 
-<script type="text/javascript">
-  var width = 600;
-  var height = 600;
+  <div>
+    <label for="width">Width</label>
+    <input id="width" type="text" value="600" size="4" name="width" />
+    <label for="height">Height</label>
+    <input id="height" type="text" value="600" size="4" name="height" />
+  </div>
+  <div>
+    Line 1 : 
+    <label for="line1color">Color</label>,
+    <input id="line1color" type="color" name="line1color" value="#ffffff" />
+    <label for="line1width">width</label>
+    <input id="line1width" type="text" value="1" size="2" name="line1width" />
+  </div>
+  <div>
+    Line 2 : 
+    <label for="line2color">Color</label>,
+    <input id="line2color" type="color" name="line2color" value="#000000" />
+    <label for="line2width">width</label>
+    <input id="line2width" type="text" value="1" size="2" name="line2width" />
+  </div>
+  <div>
+    <input type="button" value="reDraw" onclick="draw()" />
+  </div>
 
-  var c=document.getElementById("myCanvas");
-  var ctx=c.getContext("2d");
-  var imgData=ctx.createImageData(width,height);
-  
-  for (i=0; i < imgData.width*imgData.height*4; i+=4) {
-    var val = (((i/4 % width) % 3) == 0) ? 255 : 180;
-    imgData.data[i+0] = val; // red
-    imgData.data[i+1] = val; // green
-    imgData.data[i+2] = val; // blue
-    imgData.data[i+3] = 255; // alpha
-  }
-  
-  ctx.putImageData(imgData,0,0);
-</script>  
+  <div id="canvasArea">
+    <canvas id="myCanvas">your browser does not support the canvas tag</canvas>
+  </div>
+
+  <script type="text/javascript">
+    function draw(){
+      var canvas = document.getElementById("myCanvas");
+      var ctx = canvas.getContext("2d", {alpha: false });
+
+      // Note: width and height are virtual (CSS)
+      // https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio
+      var width = document.getElementById('width').value;
+      var height = document.getElementById('height').value;
+
+      // Set CSS canvas size
+      canvas.style.width = width + "px";
+      canvas.style.height = height + "px";
+
+      // Set physical canvas size
+      var scale = window.devicePixelRatio;
+      canvas.width = width * scale;
+      canvas.height = height * scale;
+      
+//      ctx.scale(scale, scale);
+
+      var imgData = ctx.createImageData(canvas.width, canvas.height);
+    
+      // get line color
+      var line1color = document.getElementById('line1color').value;
+      var line2color = document.getElementById('line2color').value;
+      
+      // get line width
+      var line1width = Math.round(document.getElementById('line1width').value);
+      var line2width = Math.round(document.getElementById('line2width').value);
+      console.log("line1width = " + line1width + ", line2width = " + line2width);
+
+      // draw
+      for (i=0; i < imgData.width; i++) {
+//        var pixelColor = ((i % (line1width + line2width)) < line1width) ? line1color : line2color;
+        var pixelColor = ((i % (line1width+line2width)) < line1width) ? line1color : line2color;
+        for (j=0; j < imgData.height; j++) {
+          // pixelColor contains "#RRGGBB" string
+          var index = j*imgData.width + i
+          imgData.data[index*4+0] = parseInt(pixelColor.substr(1,2),16); // red
+          imgData.data[index*4+1] = parseInt(pixelColor.substr(3,2),16); // green
+          imgData.data[index*4+2] = parseInt(pixelColor.substr(5,2),16); // blue
+          imgData.data[index*4+3] = 255; // alpha
+        }
+      }
+    
+      ctx.putImageData(imgData,0,0);
+    }
+
+    draw();
+  </script>  
   
 </body>
 
