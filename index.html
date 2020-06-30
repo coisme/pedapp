@@ -56,7 +56,16 @@
       ctx.scale(scale,scale);
       
       var imgData = ctx.createImageData(canvas.width, canvas.height);
-    
+
+      ctx.lineWidth = 0.1;
+
+      for(i=0; i < canvas.width; i=i+2) {
+        ctx.beginPath();
+        ctx.moveTo(i,0);
+        ctx.lineTo(i,canvas.height);
+        ctx.stroke();
+      }
+/*    
       // get line color
       var line1color = document.getElementById('line1color').value;
       var line2color = document.getElementById('line2color').value;
@@ -80,6 +89,7 @@
       }
     
       ctx.putImageData(imgData,0,0);
+*/
     }
 
     draw();
