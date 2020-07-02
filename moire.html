@@ -1,0 +1,128 @@
+<html>
+
+<body onload="draw();">
+
+  <div style="margin-bottom: 15px;">
+    <img src="https://www.asahi-kasei.com/common/images/logo-01.png" height="20" />
+  </div>
+
+  <div>
+    <label for="canvasSizeX">x (px)</label>
+    <input id="canvasSizeX" type="text" value="800" name="canvasSizeX" maxLength="4" size="4" />
+    <label for="canvasSizeY">y (px)</label>
+    <input id="canvasSizeY" type="text" value="800" name="canvasSizeY" maxLength="4" size="4" />
+  </div>
+  <div>
+    <label for="density">Density</label>
+    <input id="density" type="text" value="4" name="density" maxLength="2" size="2" />
+  </div>
+  <div>
+    <label for="pixelSize">Pixel Size (um)</label>
+    <input id="pixelSize" type="text" value="55" name="pixelSize" maxlength="3" size="3" />
+  </div>
+  <div>
+    <label for="gridPitch">Grid Pitch (um)</label>
+    <input id="gridPitch" type="text" value="60" name="gridPitch" maxlength="3" size="3" />
+  </div>
+  <div>
+    <label for="lineWidth">Line Width (um)</label>
+    <input id="lineWidth" type="text" value="15" name="lineWidth" maxlength="2" size="2" />
+  </div>
+  <div>
+    <label for="angle">Angle</label>
+    <select id="angle" name="angle">
+      <option value="0" selected>0&deg;</option>
+      <option value="45">45&deg;</option>
+    </select>
+  </div>
+  <div>
+    <button onClick="draw()">draw</button>
+  </div>
+
+  <div id="canvasArea">
+    <canvas id="myCanvas">your browser does not support the canvas tag</canvas>
+  </div>
+
+  <script type="text/javascript">
+    function draw(){
+      var canvas = document.getElementById("myCanvas");
+      var ctx = canvas.getContext("2d");
+
+      // Set apparent canvas size
+      // If you feel awkward about '+', see the link below:
+      // https://stackoverflow.com/questions/24355508/using-a-textbox-to-take-in-an-integer-value-for-use-in-javascript-function-is-t
+      var width = +document.getElementById('canvasSizeX').value;
+      var height = +document.getElementById('canvasSizeY').value;
+      canvas.style.width = width + "px";
+      canvas.style.height = height + "px";
+      console.log("canvas.style.width = " + canvas.style.width);
+      console.log("canvas.style.height = " + canvas.style.height);
+
+      // Set scale
+      var scale = +document.getElementById('density').value;
+      console.log("Display scale is " + scale);
+
+      // Set drawable canvas size
+      canvas.width = width * scale;
+      canvas.height = height * scale;
+      console.log("Canvas size is " + canvas.width + "x" + canvas.height);
+
+      // Fill background
+      ctx.fillStyle = "rgb(0,0,0)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw pixels
+      var pixelSize = +document.getElementById('pixelSize').value;
+      var delta = pixelSize / 3;
+      console.log("pixelSize is " + pixelSize + ", delta is " + delta + ".");
+      for(i=0; i < canvas.width; i=i+pixelSize){
+        for(j=0; j < canvas.height; j=j+pixelSize){
+          ctx.fillStyle = "rgb(255, 0, 0)";
+          ctx.fillRect(i, j+delta, delta, pixelSize-delta);
+          ctx.fillStyle = "rgb( 0, 255, 0)";
+          ctx.fillRect(i+delta, j+delta, delta, pixelSize-delta);
+          ctx.fillStyle = "rgb( 0, 0, 255)";
+          ctx.fillRect(i+2*delta, j+delta, delta, pixelSize-delta);
+        }
+      }
+
+      // Draw grids
+      var pitch = +document.getElementById('gridPitch').value;
+      var lineWidth = +document.getElementById('lineWidth').value;
+      var angle = +document.getElementById('angle').value;
+      ctx.lineWidth = lineWidth;
+      ctx.fillStyle = "rgb(0, 0, 0)";
+      if(angle == 0) {
+        // x
+        for(i=0; i < canvas.width; i=i+pitch){
+          ctx.beginPath();
+          ctx.moveTo(i, 0);
+          ctx.lineTo(i, canvas.height);
+          ctx.stroke();
+        }
+        // y
+        for(j=0; j < canvas.height; j=j+pitch){
+          ctx.beginPath();
+          ctx.moveTo(0, j);
+          ctx.lineTo(canvas.width, j);
+          ctx.stroke();
+        }
+      } else {
+        // 45 deg
+        for(i=0; i <= canvas.width*2; i=i+pitch*Math.sqrt(2)){
+          ctx.beginPath();
+          ctx.moveTo(i,0);
+          ctx.lineTo(0,i);
+          ctx.lineTo(canvas.width*2-i, canvas.width*2);
+          ctx.lineTo(canvas.width*2, canvas.width*2-i);
+          ctx.lineTo(i,0);
+          ctx.stroke();
+        }
+      }
+      console.log("(PixelSize, gridPitch, lineWidth) = (" + pixelSize + ", " + pitch + ", " + lineWidth + ")");
+    }
+  </script>  
+  
+</body>
+
+</html>
