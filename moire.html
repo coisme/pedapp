@@ -18,7 +18,7 @@
   </div>
   <div>
     <label for="pixelSize">Pixel Size (um)</label>
-    <input id="pixelSize" type="text" value="55" name="pixelSize" maxlength="3" size="3" />
+    <input id="pixelSize" type="text" value="78" name="pixelSize" maxlength="3" size="3" />
   </div>
   <div>
     <label for="gridPitch">Grid Pitch (um)</label>
@@ -85,11 +85,11 @@
       console.log("pixelSize is " + pixelSize + ", delta is " + delta + ".");
       for(i=0; i < canvas.width; i=i+pixelSize){
         for(j=0; j < canvas.height; j=j+pixelSize){
-          ctx.fillStyle = "rgb(255, 0, 0)";
+          ctx.fillStyle = "rgb(255, 64, 64)";
           ctx.fillRect(i, j+delta, delta, pixelSize-delta);
-          ctx.fillStyle = "rgb( 0, 255, 0)";
+          ctx.fillStyle = "rgb( 64, 255, 64)";
           ctx.fillRect(i+delta, j+delta, delta, pixelSize-delta);
-          ctx.fillStyle = "rgb( 0, 0, 255)";
+          ctx.fillStyle = "rgb( 64, 64, 255)";
           ctx.fillRect(i+2*delta, j+delta, delta, pixelSize-delta);
         }
       }
