@@ -37,11 +37,19 @@
   </div>
   <div>
     <button onClick="draw()">draw</button>
+    <!-- 
+      Download image, refer to https://qiita.com/iwaimagic/items/1d16a721b36f04e91aed
+    -->
+    <button onclick="downloadCanvas()">Download</button>
+    <div style="display: none;">
+      <a id="hiddenLink" download="canvas.png">link</a>
+    </div>  
   </div>
 
   <div id="canvasArea">
     <canvas id="myCanvas">your browser does not support the canvas tag</canvas>
   </div>
+
 
   <script type="text/javascript">
     function draw(){
@@ -120,6 +128,16 @@
         }
       }
       console.log("(PixelSize, gridPitch, lineWidth) = (" + pixelSize + ", " + pitch + ", " + lineWidth + ")");
+    }
+
+    function downloadCanvas() {
+      let canvas = document.getElementById('myCanvas');
+      let link = document.getElementById('hiddenLink');
+      link.href = canvas.toDataURL();
+
+//      document.getElementById('canvasImage').src = canvas.toDataURL();
+
+      link.click()
     }
   </script>  
   
