@@ -43,7 +43,16 @@
     <button onclick="downloadCanvas()">Download</button>
     <div style="display: none;">
       <a id="hiddenLink" download="canvas.png">link</a>
-    </div>  
+    </div>
+    <script type="text/javascript">
+    function downloadCanvas() {
+      let canvas = document.getElementById('myCanvas');
+      let link = document.getElementById('hiddenLink');
+      link.href = canvas.toDataURL();
+//      document.getElementById('canvasImage').src = canvas.toDataURL();
+      link.click()
+    }
+    </script>
   </div>
 
   <div id="canvasArea">
@@ -53,21 +62,21 @@
 
   <script type="text/javascript">
     function draw(){
-      var canvas = document.getElementById("myCanvas");
-      var ctx = canvas.getContext("2d");
+      let canvas = document.getElementById("myCanvas");
+      let ctx = canvas.getContext("2d");
 
       // Set apparent canvas size
       // If you feel awkward about '+', see the link below:
       // https://stackoverflow.com/questions/24355508/using-a-textbox-to-take-in-an-integer-value-for-use-in-javascript-function-is-t
-      var width = +document.getElementById('canvasSizeX').value;
-      var height = +document.getElementById('canvasSizeY').value;
+      let width = +document.getElementById('canvasSizeX').value;
+      let height = +document.getElementById('canvasSizeY').value;
       canvas.style.width = width + "px";
       canvas.style.height = height + "px";
       console.log("canvas.style.width = " + canvas.style.width);
       console.log("canvas.style.height = " + canvas.style.height);
 
       // Set scale
-      var scale = +document.getElementById('density').value;
+      let scale = +document.getElementById('density').value;
       console.log("Display scale is " + scale);
 
       // Set drawable canvas size
@@ -80,8 +89,8 @@
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // Draw pixels
-      var pixelSize = +document.getElementById('pixelSize').value;
-      var delta = pixelSize / 3;
+      let pixelSize = +document.getElementById('pixelSize').value;
+      let delta = pixelSize / 3;
       console.log("pixelSize is " + pixelSize + ", delta is " + delta + ".");
       for(i=0; i < canvas.width; i=i+pixelSize){
         for(j=0; j < canvas.height; j=j+pixelSize){
@@ -95,9 +104,9 @@
       }
 
       // Draw grids
-      var pitch = +document.getElementById('gridPitch').value;
-      var lineWidth = +document.getElementById('lineWidth').value;
-      var angle = +document.getElementById('angle').value;
+      let pitch = +document.getElementById('gridPitch').value;
+      let lineWidth = +document.getElementById('lineWidth').value;
+      let angle = +document.getElementById('angle').value;
       ctx.lineWidth = lineWidth;
       ctx.fillStyle = "rgb(0, 0, 0)";
       if(angle == 0) {
@@ -127,17 +136,33 @@
           ctx.stroke();
         }
       }
-      console.log("(PixelSize, gridPitch, lineWidth) = (" + pixelSize + ", " + pitch + ", " + lineWidth + ")");
-    }
 
-    function downloadCanvas() {
-      let canvas = document.getElementById('myCanvas');
-      let link = document.getElementById('hiddenLink');
-      link.href = canvas.toDataURL();
+      // draw parameters
+      let info = "Pixel Pitch: " + pixelSize + " um, "
+                   + "Grid Pitch: " + pitch + " um, "
+                   + "Line Width: " + lineWidth + " um";
 
-//      document.getElementById('canvasImage').src = canvas.toDataURL();
+      ctx.scale(scale, scale);
 
-      link.click()
+      let margin_x = 10; // px
+      let margin_y = 10; // px
+      let padding_x = 3; // px
+      let padding_y = 3; // px
+
+      ctx.textBaseline = "top";
+      ctx.font = "12px serif";
+
+      let textWidth = ctx.measureText(info).width;
+      // Approximately, see https://stackoverflow.com/a/13318387
+      let textHeight = ctx.measureText('M').width; 
+
+      // Draw box
+      ctx.fillStyle = "white";
+      ctx.fillRect(margin_x, margin_y, textWidth + 2*padding_x, textHeight + 2*padding_y);
+
+      // Draw text
+      ctx.fillStyle = "black";
+      ctx.fillText(info, margin_x + padding_x, margin_y + padding_y);
     }
   </script>  
   
