@@ -17,16 +17,24 @@
     <input id="density" type="text" value="4" name="density" maxLength="2" size="2" />
   </div>
   <div>
+    <label for="pixelPattern">Pixel Pattern</label>
+    <select id="pixelPattern" name="pixelPattern">
+      <option value="iPhone5s" selected>iPhone 5s</option>
+      <option value="iPhone11Pro">iPhone 11 Pro</option>
+    </select>
+  </div>
+  <div>
     <label for="pixelSize">Pixel Size (um)</label>
-    <input id="pixelSize" type="text" value="78" name="pixelSize" maxlength="3" size="3" />
+    <input id="pixelSize" type="text" value="78" name="pixelSize" maxlength="5" size="5" />
+    (iPhone 5S: 78 um, iPhone 11 Pro: 55.5 um)
   </div>
   <div>
     <label for="gridPitch">Grid Pitch (um)</label>
-    <input id="gridPitch" type="text" value="60" name="gridPitch" maxlength="3" size="3" />
+    <input id="gridPitch" type="text" value="60" name="gridPitch" maxlength="5" size="5" />
   </div>
   <div>
     <label for="lineWidth">Line Width (um)</label>
-    <input id="lineWidth" type="text" value="15" name="lineWidth" maxlength="2" size="2" />
+    <input id="lineWidth" type="text" value="13" name="lineWidth" maxlength="2" size="2" />
   </div>
   <div>
     <label for="angle">Angle</label>
@@ -62,6 +70,9 @@
 
   <script type="text/javascript">
     function draw(){
+      //
+      // Setup
+      //
       let canvas = document.getElementById("myCanvas");
       let ctx = canvas.getContext("2d");
 
@@ -88,22 +99,39 @@
       ctx.fillStyle = "rgb(0,0,0)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+      //
       // Draw pixels
+      //
       let pixelSize = +document.getElementById('pixelSize').value;
       let delta = pixelSize / 3;
+      let margin = pixelSize / 12;
+      let normGreen = Math.sqrt((pixelSize/2.0-2.0*margin)*(pixelSize/2.0-2.0*margin)/2.0); // length of green dot
+      let pixelPattern = document.getElementById('pixelPattern').value;
       console.log("pixelSize is " + pixelSize + ", delta is " + delta + ".");
       for(i=0; i < canvas.width; i=i+pixelSize){
         for(j=0; j < canvas.height; j=j+pixelSize){
-          ctx.fillStyle = "rgb(255, 64, 64)";
-          ctx.fillRect(i, j+delta, delta, pixelSize-delta);
-          ctx.fillStyle = "rgb( 64, 255, 64)";
-          ctx.fillRect(i+delta, j+delta, delta, pixelSize-delta);
-          ctx.fillStyle = "rgb( 64, 64, 255)";
-          ctx.fillRect(i+2*delta, j+delta, delta, pixelSize-delta);
+          if(pixelPattern == 'iPhone5s'){
+            ctx.fillStyle = "rgb(255, 64, 64)";
+            ctx.fillRect(i, j+delta, delta, pixelSize-delta);
+            ctx.fillStyle = "rgb( 64, 255, 64)";
+            ctx.fillRect(i+delta, j+delta, delta, pixelSize-delta);
+            ctx.fillStyle = "rgb( 64, 64, 255)";
+            ctx.fillRect(i+2*delta, j+delta, delta, pixelSize-delta);
+          } else {  // iPhone 11 Pro
+            ctx.fillStyle = "rgb(255, 64, 64)";
+            ctx.fillRect(i + margin, j + margin, pixelSize/2 - 2*margin, pixelSize/2 - 2*margin);
+            ctx.fillStyle = "rgb( 64, 255, 64)";
+            ctx.fillRect(i + 3*pixelSize/4 - normGreen/2, j + pixelSize/4 - normGreen/2, normGreen, normGreen);
+            ctx.fillRect(i + 1*pixelSize/4 - normGreen/2, j + 3*pixelSize/4 - normGreen/2, normGreen, normGreen);
+            ctx.fillStyle = "rgb(64, 64, 255)";
+            ctx.fillRect(i + pixelSize/2 + margin, j + pixelSize/2 + margin, pixelSize/2 - 2*margin, pixelSize/2 - 2*margin);
+          }
         }
       }
 
+      //
       // Draw grids
+      //
       let pitch = +document.getElementById('gridPitch').value;
       let lineWidth = +document.getElementById('lineWidth').value;
       let angle = +document.getElementById('angle').value;
@@ -137,7 +165,9 @@
         }
       }
 
+      //
       // draw parameters
+      //
       let info = "Pixel Pitch: " + pixelSize + " um, "
                    + "Grid Pitch: " + pitch + " um, "
                    + "Line Width: " + lineWidth + " um";
