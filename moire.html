@@ -66,7 +66,9 @@
   <div id="canvasArea">
     <canvas id="myCanvas">your browser does not support the canvas tag</canvas>
   </div>
-
+  <div>
+    <canvas id="zoom" width="400" height="200">your browser does not support the canvas tag</canvas>
+  </div>
 
   <script type="text/javascript">
     function draw(){
@@ -195,6 +197,20 @@
       ctx.fillText(info, margin_x + padding_x, margin_y + padding_y);
 
       ctx.scale(1.0, 1.0);
+
+      // zoom
+      let zoom = document.getElementById("zoom");
+      let zoomCtx = zoom.getContext("2d");
+      canvas.addEventListener("mousemove", function(e){
+        //console.log(e);
+        zoomCtx.drawImage(canvas, e.x, e.y, 200, 100, 0,0, 400, 200);
+        zoom.style.top = e.pageY + 10+ "px"
+        zoom.style.left = e.pageX +10+ "px"
+        zoom.style.display = "block";
+      });
+      canvas.addEventListener("mouseout", function(){
+//          zoom.style.display = "none";
+      });
     }
   </script>  
   
