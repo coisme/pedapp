@@ -78,6 +78,13 @@
       let canvas = document.getElementById("myCanvas");
       let ctx = canvas.getContext("2d");
 
+      // Disable image smoothing
+      // See: https://developer.mozilla.org/ja/docs/Web/Guide/HTML/Canvas_tutorial/Using_images#Controlling_image_scaling_behavior
+      ctx.mozImageSmoothingEnabled = false;
+      ctx.webkitImageSmoothingEnabled = false;
+      ctx.msImageSmoothingEnabled = false;
+      ctx.imageSmoothingEnabled = false;
+
       // Set apparent canvas size
       // If you feel awkward about '+', see the link below:
       // https://stackoverflow.com/questions/24355508/using-a-textbox-to-take-in-an-integer-value-for-use-in-javascript-function-is-t
@@ -106,28 +113,36 @@
       //
       let pixelSize = +document.getElementById('pixelSize').value;
       let delta = pixelSize / 3;
-      let margin = pixelSize / 12;
+      let margin = pixelSize / 16;
       let normGreen = Math.sqrt((pixelSize/2.0-2.0*margin)*(pixelSize/2.0-2.0*margin)/2.0); // length of green dot
       let pixelPattern = document.getElementById('pixelPattern').value;
       console.log("pixelSize is " + pixelSize + ", delta is " + delta + ".");
+      // Create a pixel (pre-rendering)
+      // See: https://www.html5rocks.com/ja/tutorials/canvas/performance/#toc-pre-render
+      var m_canvas = document.createElement('canvas');
+      m_canvas.width = pixelSize;
+      m_canvas.height = pixelSize;
+      var m_ctx = m_canvas.getContext('2d');
+      if(pixelPattern == 'iPhone5s'){
+        m_ctx.fillStyle = "rgb(255, 64, 64)";
+        m_ctx.fillRect(0, delta, delta, pixelSize-delta);
+        m_ctx.fillStyle = "rgb( 64, 255, 64)";
+        m_ctx.fillRect(delta, delta, delta, pixelSize-delta);
+        m_ctx.fillStyle = "rgb( 64, 64, 255)";
+        m_ctx.fillRect(2*delta, delta, delta, pixelSize-delta);
+      } else {  // iPhone 11 Pro
+        m_ctx.fillStyle = "rgb(255, 64, 64)";
+        m_ctx.fillRect(margin, margin, pixelSize/2 - 2*margin, pixelSize/2 - 2*margin);
+        m_ctx.fillStyle = "rgb( 64, 255, 64)";
+        m_ctx.fillRect(3*pixelSize/4 - normGreen/2, pixelSize/4 - normGreen/2, normGreen, normGreen);
+        m_ctx.fillRect(1*pixelSize/4 - normGreen/2, 3*pixelSize/4 - normGreen/2, normGreen, normGreen);
+        m_ctx.fillStyle = "rgb(64, 64, 255)";
+        m_ctx.fillRect(pixelSize/2 + margin, pixelSize/2 + margin, pixelSize/2 - 2*margin, pixelSize/2 - 2*margin);
+      }
+      // Fill the area with pixels
       for(i=0; i < canvas.width; i=i+pixelSize){
         for(j=0; j < canvas.height; j=j+pixelSize){
-          if(pixelPattern == 'iPhone5s'){
-            ctx.fillStyle = "rgb(255, 64, 64)";
-            ctx.fillRect(i, j+delta, delta, pixelSize-delta);
-            ctx.fillStyle = "rgb( 64, 255, 64)";
-            ctx.fillRect(i+delta, j+delta, delta, pixelSize-delta);
-            ctx.fillStyle = "rgb( 64, 64, 255)";
-            ctx.fillRect(i+2*delta, j+delta, delta, pixelSize-delta);
-          } else {  // iPhone 11 Pro
-            ctx.fillStyle = "rgb(255, 64, 64)";
-            ctx.fillRect(i + margin, j + margin, pixelSize/2 - 2*margin, pixelSize/2 - 2*margin);
-            ctx.fillStyle = "rgb( 64, 255, 64)";
-            ctx.fillRect(i + 3*pixelSize/4 - normGreen/2, j + pixelSize/4 - normGreen/2, normGreen, normGreen);
-            ctx.fillRect(i + 1*pixelSize/4 - normGreen/2, j + 3*pixelSize/4 - normGreen/2, normGreen, normGreen);
-            ctx.fillStyle = "rgb(64, 64, 255)";
-            ctx.fillRect(i + pixelSize/2 + margin, j + pixelSize/2 + margin, pixelSize/2 - 2*margin, pixelSize/2 - 2*margin);
-          }
+          ctx.drawImage(m_canvas, i, j);
         }
       }
 
