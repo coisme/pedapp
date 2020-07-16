@@ -7,14 +7,17 @@
   </div>
 
   <div>
-    <label for="canvasSizeX">x (px)</label>
-    <input id="canvasSizeX" type="text" value="600" name="canvasSizeX" maxLength="4" size="4" />
-    <label for="canvasSizeY">y (px)</label>
-    <input id="canvasSizeY" type="text" value="600" name="canvasSizeY" maxLength="4" size="4" />
+    <label for="numOfPixelsX">Number of Pixels (X)</label>
+    <input id="numOfPixelsX" type="text" value="50" name="numOfPixelsX" maxLength="4" size="4" />
+    <label for="numOfPixelsY">Number of Pixels (Y)</label>
+    <input id="numOfPixelsY" type="text" value="30" name="numOfPixelsY" maxLength="4" size="4" />
+    <div>
+      (iPhone 5S: 1136 x 640, iPhone 11 Pro: 2688 x 1242)
+    </div>
   </div>
   <div>
     <label for="density">Density</label>
-    <input id="density" type="text" value="4" name="density" maxLength="2" size="2" />
+    <input id="density" type="text" value="0" name="density" maxLength="2" size="2" />
   </div>
   <div>
     <label for="pixelPattern">Pixel Pattern</label>
@@ -29,12 +32,16 @@
     (iPhone 5S: 78 um, iPhone 11 Pro: 55.5 um)
   </div>
   <div>
+    <label for="isDrawGrid">Draw Grid</label>
+    <input type="checkbox" id="isDrawGrid" name="isDrawGrid" value="draw" checked />
+  </div>
+  <div>
     <label for="gridPitch">Grid Pitch (um)</label>
     <input id="gridPitch" type="text" value="60" name="gridPitch" maxlength="5" size="5" />
   </div>
   <div>
     <label for="lineWidth">Line Width (um)</label>
-    <input id="lineWidth" type="text" value="13" name="lineWidth" maxlength="2" size="2" />
+    <input id="lineWidth" type="text" value="10" name="lineWidth" maxlength="2" size="2" />
   </div>
   <div>
     <label for="angle">Angle</label>
@@ -42,6 +49,12 @@
       <option value="0" selected>0&deg;</option>
       <option value="45">45&deg;</option>
     </select>
+  </div>
+  <div>
+    <label for="phaseX">Phase X(&deg;)</label>
+    <input id="phaseX" type="text" value="0" name="phaseX" maxlength="4" size="4" />
+    <label for="phaseY">Phase Y(&deg;)</label>
+    <input id="phaseY" type="text" value="0" name="phaseY" maxlength="4" size="4" />
   </div>
   <div>
     <button onClick="draw()">draw</button>
@@ -85,24 +98,37 @@
       ctx.msImageSmoothingEnabled = false;
       ctx.imageSmoothingEnabled = false;
 
-      // Set apparent canvas size
+      // Set scale
       // If you feel awkward about '+', see the link below:
+      // See: https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio
+      let density = +document.getElementById('density').value;
+      let scale = density;
+      if(density < 0.1){
+        // Set default if density == 0
+        scale = window.devicePixelRatio || 1;
+        document.getElementById('density').value = scale;
+      }
+      console.log("Display scale is " + scale);
+
+      // Size of a pixel
       // https://stackoverflow.com/questions/24355508/using-a-textbox-to-take-in-an-integer-value-for-use-in-javascript-function-is-t
-      let width = +document.getElementById('canvasSizeX').value;
-      let height = +document.getElementById('canvasSizeY').value;
+      let pixelSize = +document.getElementById('pixelSize').value;
+      console.log("Pixel size is " + pixelSize);
+
+      // Set drawable canvas size
+      let numOfPixelsX = +document.getElementById('numOfPixelsX').value;
+      let numOfPixelsY = +document.getElementById('numOfPixelsY').value;
+      canvas.width = pixelSize * numOfPixelsX;
+      canvas.height = pixelSize * numOfPixelsY;
+      console.log("Drawable canvas size is " + canvas.width + "x" + canvas.height);
+
+      // Set apparent canvas size
+      let width = canvas.width / scale;
+      let height = canvas.height / scale;
       canvas.style.width = width + "px";
       canvas.style.height = height + "px";
       console.log("canvas.style.width = " + canvas.style.width);
       console.log("canvas.style.height = " + canvas.style.height);
-
-      // Set scale
-      let scale = +document.getElementById('density').value;
-      console.log("Display scale is " + scale);
-
-      // Set drawable canvas size
-      canvas.width = width * scale;
-      canvas.height = height * scale;
-      console.log("Canvas size is " + canvas.width + "x" + canvas.height);
 
       // Fill background
       ctx.fillStyle = "rgb(0,0,0)";
@@ -111,7 +137,6 @@
       //
       // Draw pixels
       //
-      let pixelSize = +document.getElementById('pixelSize').value;
       let delta = pixelSize / 3;
       let margin = pixelSize / 16;
       let normGreen = Math.sqrt((pixelSize/2.0-2.0*margin)*(pixelSize/2.0-2.0*margin)/2.0); // length of green dot
@@ -152,42 +177,50 @@
       let pitch = +document.getElementById('gridPitch').value;
       let lineWidth = +document.getElementById('lineWidth').value;
       let angle = +document.getElementById('angle').value;
+      let shiftX = pitch * document.getElementById('phaseX').value / 360.0;
+      let shiftY = pitch * document.getElementById('phaseY').value / 360.0;
       ctx.lineWidth = lineWidth;
-      ctx.strokeStyle = "rgb(0, 0, 0)";
-      if(angle == 0) {
+      ctx.strokeStyle = "rgb(60, 60, 60)";
+      let isDrawGrid = document.getElementById('isDrawGrid').checked;
+      if(isDrawGrid) {
+        if(angle == 0) {
         // x
-        for(i=0; i < canvas.width; i=i+pitch){
+        for(i=shiftX; i < canvas.width; i=i+pitch){
           ctx.beginPath();
           ctx.moveTo(i, 0);
           ctx.lineTo(i, canvas.height);
           ctx.stroke();
         }
         // y
-        for(j=0; j < canvas.height; j=j+pitch){
+        for(j=shiftY; j < canvas.height; j=j+pitch){
           ctx.beginPath();
           ctx.moveTo(0, j);
           ctx.lineTo(canvas.width, j);
           ctx.stroke();
         }
-      } else {
-        // 45 deg
-        for(i=0; i <= canvas.width*2; i=i+pitch*Math.sqrt(2)){
-          ctx.beginPath();
-          ctx.moveTo(i,0);
-          ctx.lineTo(0,i);
-          ctx.lineTo(canvas.width*2-i, canvas.width*2);
-          ctx.lineTo(canvas.width*2, canvas.width*2-i);
-          ctx.lineTo(i,0);
-          ctx.stroke();
+        } else {
+          // 45 deg
+          for(i=shiftX; i <= canvas.width*2; i=i+pitch*Math.sqrt(2)){
+            ctx.beginPath();
+            ctx.moveTo(i,0);
+            ctx.lineTo(0,i);
+            ctx.lineTo(canvas.width*2-i, canvas.width*2);
+            ctx.lineTo(canvas.width*2, canvas.width*2-i);
+            ctx.lineTo(i,0);
+            ctx.stroke();
+          }
         }
       }
 
       //
       // draw parameters
       //
-      let info = "Pixel Pitch: " + pixelSize + " um, "
+      let info =  "Pattern: " + pixelPattern + ", "
+                   + numOfPixelsX + " x " + numOfPixelsY + " pixels, "
+                   + "Pixel Pitch: " + pixelSize + " um, "
                    + "Grid Pitch: " + pitch + " um, "
-                   + "Line Width: " + lineWidth + " um";
+                   + "Line Width: " + lineWidth + " um"
+                   + "Angle: " + angle + " deg";
 
       ctx.scale(scale, scale);
 
@@ -210,22 +243,6 @@
       // Draw text
       ctx.fillStyle = "black";
       ctx.fillText(info, margin_x + padding_x, margin_y + padding_y);
-
-      ctx.scale(1.0, 1.0);
-
-      // zoom
-      let zoom = document.getElementById("zoom");
-      let zoomCtx = zoom.getContext("2d");
-      canvas.addEventListener("mousemove", function(e){
-        //console.log(e);
-        zoomCtx.drawImage(canvas, e.x, e.y, 200, 100, 0,0, 400, 200);
-        zoom.style.top = e.pageY + 10+ "px"
-        zoom.style.left = e.pageX +10+ "px"
-        zoom.style.display = "block";
-      });
-      canvas.addEventListener("mouseout", function(){
-//          zoom.style.display = "none";
-      });
     }
   </script>  
   
