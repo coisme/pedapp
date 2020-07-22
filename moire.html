@@ -1,36 +1,39 @@
 <html>
 
-<body onload="draw();">
+<body onload="deviceChanged();draw();">
 
   <div style="margin-bottom: 15px;">
     <img src="https://www.asahi-kasei.com/common/images/logo-01.png" height="20" />
   </div>
 
+  <h1>Parameters</h1>
+  
   <div>
     <label for="numOfPixelsX">Number of Pixels (X)</label>
-    <input id="numOfPixelsX" type="text" value="50" name="numOfPixelsX" maxLength="4" size="4" />
+    <input id="numOfPixelsX" type="text" value="60" name="numOfPixelsX" maxLength="4" size="4" />
     <label for="numOfPixelsY">Number of Pixels (Y)</label>
-    <input id="numOfPixelsY" type="text" value="30" name="numOfPixelsY" maxLength="4" size="4" />
-    <div>
-      (iPhone 5S: 1136 x 640, iPhone 11 Pro: 2688 x 1242)
-    </div>
+    <input id="numOfPixelsY" type="text" value="40" name="numOfPixelsY" maxLength="4" size="4" />
   </div>
   <div>
     <label for="density">Density</label>
-    <input id="density" type="text" value="0" name="density" maxLength="2" size="2" />
+    <input id="density" type="text" value="4" name="density" maxLength="2" size="2" />
   </div>
+
+  <h2>Mobile Phone</h2>
   <div>
-    <label for="pixelPattern">Pixel Pattern</label>
-    <select id="pixelPattern" name="pixelPattern">
-      <option value="iPhone5s" selected>iPhone 5s</option>
-      <option value="iPhone11Pro">iPhone 11 Pro</option>
+    <label for="device">Device</label>
+    <select id="device" name="device" onchange="deviceChanged()">
+      <option value="iPhone 5s">iPhone 5s</option>
+      <option value="iPhone 11 Pro" selected>iPhone 11 Pro</option>
     </select>
+    <span id="deviceInfo"></span>
   </div>
   <div>
     <label for="pixelSize">Pixel Size (um)</label>
-    <input id="pixelSize" type="text" value="78" name="pixelSize" maxlength="5" size="5" />
-    (iPhone 5S: 78 um, iPhone 11 Pro: 55.5 um)
+    <input id="pixelSize" type="text" value="55.5" name="pixelSize" maxlength="5" size="5" />
   </div>
+
+  <h2>Antenna</h2>
   <div>
     <label for="isDrawGrid">Draw Grid</label>
     <input type="checkbox" id="isDrawGrid" name="isDrawGrid" value="draw" checked />
@@ -50,41 +53,90 @@
       <option value="45">45&deg;</option>
     </select>
   </div>
+
   <div>
     <label for="phaseX">Phase X(&deg;)</label>
     <input id="phaseX" type="text" value="0" name="phaseX" maxlength="4" size="4" />
     <label for="phaseY">Phase Y(&deg;)</label>
     <input id="phaseY" type="text" value="0" name="phaseY" maxlength="4" size="4" />
   </div>
+
+  <h1>Simulate</h1>
   <div>
     <button onClick="draw()">draw</button>
-    <!-- 
-      Download image, refer to https://qiita.com/iwaimagic/items/1d16a721b36f04e91aed
-    -->
-    <button onclick="downloadCanvas()">Download</button>
-    <div style="display: none;">
-      <a id="hiddenLink" download="canvas.png">link</a>
-    </div>
-    <script type="text/javascript">
-    function downloadCanvas() {
-      let canvas = document.getElementById('myCanvas');
-      let link = document.getElementById('hiddenLink');
-      link.href = canvas.toDataURL();
-//      document.getElementById('canvasImage').src = canvas.toDataURL();
-      link.click()
-    }
-    </script>
   </div>
+
+  <h2>Simulated Area</h2>
+  <p>
+    Gray area means entire screen. Red rectangle shows the simulated area size.
+  </p>
+  <div id="guideArea">
+    <canvas id="guide">your browser does not support the canvas tag</canvas>
+  </div>
+
+  <h2>Result</h2>
 
   <div id="canvasArea">
     <canvas id="myCanvas">your browser does not support the canvas tag</canvas>
   </div>
-  <div>
-    <canvas id="zoom" width="400" height="200">your browser does not support the canvas tag</canvas>
+
+  <!-- 
+    Download image, refer to https://qiita.com/iwaimagic/items/1d16a721b36f04e91aed
+  -->
+  <button onclick="downloadCanvas()">Download This Picture</button>
+  <div style="display: none;">
+    <a id="hiddenLink" download="canvas.png">link</a>
   </div>
+  <script type="text/javascript">
+  function downloadCanvas() {
+    let canvas = document.getElementById('myCanvas');
+    let link = document.getElementById('hiddenLink');
+    link.href = canvas.toDataURL();
+//      document.getElementById('canvasImage').src = canvas.toDataURL();
+    link.click()
+  }
+  </script>
 
   <script type="text/javascript">
-    function draw(){
+    // A technique in Javascript
+    // https://stackoverflow.com/questions/24355508/using-a-textbox-to-take-in-an-integer-value-for-use-in-javascript-function-is-t
+
+    class Device {
+      constructor(model, pixel_x, pixel_y, pitch, pattern) {
+        this.model = model;
+        this.pixel_x = pixel_x;
+        this.pixel_y = pixel_y;
+        this.pitch = pitch;
+        this.pattern = pattern;
+      }
+    }
+
+    var iPhone11Pro = new Device('iPhone 11 Pro', 1242, 2436, 55.5, 'iPhone11Pro');
+    var iPhone5s = new Device('iPhone 5s', 640, 1136, 78, 'iPhone5s');
+
+    var devices = [iPhone11Pro, iPhone5s];
+    var currentDevice = iPhone11Pro;
+
+    function deviceChanged() {
+      let model = document.getElementById('device').value;
+      let selected;
+      
+      devices.forEach(element => {
+        if(element.model === model) {
+          selected = element;
+        }
+      });
+      console.log(selected.model + " is selected!");
+
+      document.getElementById('pixelSize').value = selected.pitch;
+
+      document.getElementById('deviceInfo').innerText = 
+          selected.pixel_x + " x " + selected.pixel_y + " pixels";
+
+      currentDevice = selected;
+    }
+
+    function draw() {
       //
       // Setup
       //
@@ -110,12 +162,8 @@
       }
       console.log("Display scale is " + scale);
 
-      // Size of a pixel
-      // https://stackoverflow.com/questions/24355508/using-a-textbox-to-take-in-an-integer-value-for-use-in-javascript-function-is-t
-      let pixelSize = +document.getElementById('pixelSize').value;
-      console.log("Pixel size is " + pixelSize);
-
       // Set drawable canvas size
+      let pixelSize = +document.getElementById('pixelSize').value;
       let numOfPixelsX = +document.getElementById('numOfPixelsX').value;
       let numOfPixelsY = +document.getElementById('numOfPixelsY').value;
       canvas.width = pixelSize * numOfPixelsX;
@@ -137,39 +185,7 @@
       //
       // Draw pixels
       //
-      let delta = pixelSize / 3;
-      let margin = pixelSize / 16;
-      let normGreen = Math.sqrt((pixelSize/2.0-2.0*margin)*(pixelSize/2.0-2.0*margin)/2.0); // length of green dot
-      let pixelPattern = document.getElementById('pixelPattern').value;
-      console.log("pixelSize is " + pixelSize + ", delta is " + delta + ".");
-      // Create a pixel (pre-rendering)
-      // See: https://www.html5rocks.com/ja/tutorials/canvas/performance/#toc-pre-render
-      var m_canvas = document.createElement('canvas');
-      m_canvas.width = pixelSize;
-      m_canvas.height = pixelSize;
-      var m_ctx = m_canvas.getContext('2d');
-      if(pixelPattern == 'iPhone5s'){
-        m_ctx.fillStyle = "rgb(255, 64, 64)";
-        m_ctx.fillRect(0, delta, delta, pixelSize-delta);
-        m_ctx.fillStyle = "rgb( 64, 255, 64)";
-        m_ctx.fillRect(delta, delta, delta, pixelSize-delta);
-        m_ctx.fillStyle = "rgb( 64, 64, 255)";
-        m_ctx.fillRect(2*delta, delta, delta, pixelSize-delta);
-      } else {  // iPhone 11 Pro
-        m_ctx.fillStyle = "rgb(255, 64, 64)";
-        m_ctx.fillRect(margin, margin, pixelSize/2 - 2*margin, pixelSize/2 - 2*margin);
-        m_ctx.fillStyle = "rgb( 64, 255, 64)";
-        m_ctx.fillRect(3*pixelSize/4 - normGreen/2, pixelSize/4 - normGreen/2, normGreen, normGreen);
-        m_ctx.fillRect(1*pixelSize/4 - normGreen/2, 3*pixelSize/4 - normGreen/2, normGreen, normGreen);
-        m_ctx.fillStyle = "rgb(64, 64, 255)";
-        m_ctx.fillRect(pixelSize/2 + margin, pixelSize/2 + margin, pixelSize/2 - 2*margin, pixelSize/2 - 2*margin);
-      }
-      // Fill the area with pixels
-      for(i=0; i < canvas.width; i=i+pixelSize){
-        for(j=0; j < canvas.height; j=j+pixelSize){
-          ctx.drawImage(m_canvas, i, j);
-        }
-      }
+      drawPixels(canvas, ctx);
 
       //
       // Draw grids
@@ -213,26 +229,79 @@
       }
 
       //
+      // Draw 1 mm measure
+      //
+      drawMeasure( 50, canvas.height - 100, canvas, ctx);
+
+      //
       // draw parameters
       //
-      let info =  "Pattern: " + pixelPattern + ", "
+      let info =  currentDevice.model + ", "
                    + numOfPixelsX + " x " + numOfPixelsY + " pixels, "
                    + "Pixel Pitch: " + pixelSize + " um, "
                    + "Grid Pitch: " + pitch + " um, "
-                   + "Line Width: " + lineWidth + " um"
+                   + "Line Width: " + lineWidth + " um, "
                    + "Angle: " + angle + " deg";
-
       ctx.scale(scale, scale);
+      drawParameters(info, 10, 10, canvas, ctx);
 
-      let margin_x = 10; // px
-      let margin_y = 10; // px
+      //
+      // draw guide
+      // 
+      drawGuide();
+    }
+
+    function drawPixels(canvas, ctx) {
+      // Size of a pixel
+      let pixelSize = +document.getElementById('pixelSize').value;
+
+      let delta = pixelSize / 3;
+      let margin = pixelSize / 16;
+      let normGreen = Math.sqrt((pixelSize/2.0-2.0*margin)*(pixelSize/2.0-2.0*margin)/2.0); // length of green dot
+      let device = document.getElementById('device').value;
+      console.log("pixelSize is " + pixelSize + ", delta is " + delta + ".");
+      // Create a pixel (pre-rendering)
+      // See: https://www.html5rocks.com/ja/tutorials/canvas/performance/#toc-pre-render
+      var m_canvas = document.createElement('canvas');
+      m_canvas.width = pixelSize;
+      m_canvas.height = pixelSize;
+      var m_ctx = m_canvas.getContext('2d');
+      if(currentDevice.pattern == 'iPhone5s'){
+        m_ctx.fillStyle = "rgb(255, 64, 64)";
+        m_ctx.fillRect(0, delta, delta, pixelSize-delta);
+        m_ctx.fillStyle = "rgb( 64, 255, 64)";
+        m_ctx.fillRect(delta, delta, delta, pixelSize-delta);
+        m_ctx.fillStyle = "rgb( 64, 64, 255)";
+        m_ctx.fillRect(2*delta, delta, delta, pixelSize-delta);
+      } else {  // iPhone 11 Pro
+        m_ctx.fillStyle = "rgb(255, 64, 64)";
+        m_ctx.fillRect(margin, margin, pixelSize/2 - 2*margin, pixelSize/2 - 2*margin);
+        m_ctx.fillStyle = "rgb( 64, 255, 64)";
+        m_ctx.fillRect(3*pixelSize/4 - normGreen/2, pixelSize/4 - normGreen/2, normGreen, normGreen);
+        m_ctx.fillRect(1*pixelSize/4 - normGreen/2, 3*pixelSize/4 - normGreen/2, normGreen, normGreen);
+        m_ctx.fillStyle = "rgb(64, 64, 255)";
+        m_ctx.fillRect(pixelSize/2 + margin, pixelSize/2 + margin, pixelSize/2 - 2*margin, pixelSize/2 - 2*margin);
+      }
+      // Fill the area with pixels
+      for(i=0; i < canvas.width; i=i+pixelSize){
+        for(j=0; j < canvas.height; j=j+pixelSize){
+          ctx.drawImage(m_canvas, i, j);
+        }
+      }
+    }
+
+
+    function drawParameters(text, x, y, canvas, ctx) {
+      let margin_x = x; // px
+      let margin_y = y; // px
       let padding_x = 3; // px
       let padding_y = 3; // px
 
+      ctx.textAlign = "start";
       ctx.textBaseline = "top";
       ctx.font = "12px serif";
 
-      let textWidth = ctx.measureText(info).width;
+      let textWidth = ctx.measureText(text).width;
       // Approximately, see https://stackoverflow.com/a/13318387
       let textHeight = ctx.measureText('M').width; 
 
@@ -242,7 +311,66 @@
 
       // Draw text
       ctx.fillStyle = "black";
-      ctx.fillText(info, margin_x + padding_x, margin_y + padding_y);
+      ctx.fillText(text, margin_x + padding_x, margin_y + padding_y);
+    }
+
+    function drawMeasure(x, y, canvas, ctx) {
+      let measureLength = 1000; // um
+      let tickLength = 30;
+
+      ctx.lineWidth = 12;
+      ctx.strokeStyle = "white";
+
+      ctx.beginPath()
+      ctx.moveTo(x, y);
+      ctx.lineTo(x, y + tickLength);
+      ctx.stroke();
+      ctx.lineTo(x, y - tickLength);
+      ctx.moveTo(x, y);
+      ctx.stroke();
+      ctx.lineTo(x + measureLength, y);
+      ctx.stroke();
+      ctx.lineTo(x + measureLength, y + tickLength);
+      ctx.stroke();
+      ctx.lineTo(x + measureLength, y - tickLength);
+      ctx.stroke();
+
+      let text = "1 mm";
+      ctx.textBaseline = "bottom";
+      ctx.textAlign = "center";
+      ctx.font = "bold 80px/1 sans-serif";
+      ctx.fillStyle = "white";
+      let textWidth = ctx.measureText(text).width;      
+      let textHeight = ctx.measureText('M').width;
+      ctx.fillText(text, x + measureLength/2, y - tickLength / 2);
+    }
+
+    function drawGuide() {
+      let canvas = document.getElementById("guide");
+      let ctx = canvas.getContext("2d");
+
+      let width = currentDevice.pixel_x;
+      let height = currentDevice.pixel_y;
+      console.log("w,h = " + width + " x " + height);
+
+      canvas.width = width;
+      canvas.height = height;
+
+      let scale = 10.0;
+      canvas.style.width = width / scale + "px";
+      canvas.style.height = height / scale + "px";
+
+      // Fill background
+      ctx.fillStyle = "rgb(200,200,200)";
+      ctx.fillRect(0, 0, width, height);
+
+      // Draw simulated area on the guide
+      let numOfPixelsX = +document.getElementById('numOfPixelsX').value;
+      let numOfPixelsY = +document.getElementById('numOfPixelsY').value;
+      console.log("numOfPixelsX, numOfPixelsY = " + numOfPixelsX + ", " + numOfPixelsY);
+      ctx.strokeStyle = "red";
+      ctx.lineWidth = 3;
+      ctx.strokeRect(50, 30, numOfPixelsX, numOfPixelsY);
     }
   </script>  
   
