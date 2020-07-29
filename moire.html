@@ -44,14 +44,11 @@
   </div>
   <div>
     <label for="lineWidth">Line Width (um)</label>
-    <input id="lineWidth" type="text" value="10" name="lineWidth" maxlength="2" size="2" />
+    <input id="lineWidth" type="text" value="5" name="lineWidth" maxlength="2" size="2" />
   </div>
   <div>
-    <label for="angle">Angle</label>
-    <select id="angle" name="angle">
-      <option value="0" selected>0&deg;</option>
-      <option value="45">45&deg;</option>
-    </select>
+    <label for="angle">Angle (&deg;)</label>
+    <input id="angle" type="text" value="0" name="angle" maxlength="4" size="4" />
   </div>
 
   <div>
@@ -190,42 +187,9 @@
       //
       // Draw grids
       //
-      let pitch = +document.getElementById('gridPitch').value;
-      let lineWidth = +document.getElementById('lineWidth').value;
-      let angle = +document.getElementById('angle').value;
-      let shiftX = pitch * document.getElementById('phaseX').value / 360.0;
-      let shiftY = pitch * document.getElementById('phaseY').value / 360.0;
-      ctx.lineWidth = lineWidth;
-      ctx.strokeStyle = "rgb(60, 60, 60)";
       let isDrawGrid = document.getElementById('isDrawGrid').checked;
       if(isDrawGrid) {
-        if(angle == 0) {
-        // x
-        for(i=shiftX; i < canvas.width; i=i+pitch){
-          ctx.beginPath();
-          ctx.moveTo(i, 0);
-          ctx.lineTo(i, canvas.height);
-          ctx.stroke();
-        }
-        // y
-        for(j=shiftY; j < canvas.height; j=j+pitch){
-          ctx.beginPath();
-          ctx.moveTo(0, j);
-          ctx.lineTo(canvas.width, j);
-          ctx.stroke();
-        }
-        } else {
-          // 45 deg
-          for(i=shiftX; i <= canvas.width*2; i=i+pitch*Math.sqrt(2)){
-            ctx.beginPath();
-            ctx.moveTo(i,0);
-            ctx.lineTo(0,i);
-            ctx.lineTo(canvas.width*2-i, canvas.width*2);
-            ctx.lineTo(canvas.width*2, canvas.width*2-i);
-            ctx.lineTo(i,0);
-            ctx.stroke();
-          }
-        }
+        drawGrids(canvas, ctx);
       }
 
       //
@@ -236,12 +200,15 @@
       //
       // draw parameters
       //
+      let pitch = +document.getElementById('gridPitch').value;
+      let angle = +document.getElementById('angle').value;
+      let lineWidth = +document.getElementById('lineWidth').value;
       let info =  currentDevice.model + ", "
                    + numOfPixelsX + " x " + numOfPixelsY + " pixels, "
                    + "Pixel Pitch: " + pixelSize + " um, "
-                   + "Grid Pitch: " + pitch + " um, "
-                   + "Line Width: " + lineWidth + " um, "
-                   + "Angle: " + angle + " deg";
+                   + "Grid Pitch: " + +document.getElementById('gridPitch').value + " um, "
+                   + "Line Width: " + document.getElementById('lineWidth').value + " um, "
+                   + "Angle: " + document.getElementById('angle').value + " deg";
       ctx.scale(scale, scale);
       drawParameters(info, 10, 10, canvas, ctx);
 
@@ -249,6 +216,37 @@
       // draw guide
       // 
       drawGuide();
+    }
+
+    function drawGrids(canvas, ctx) {
+      let pitch = +document.getElementById('gridPitch').value;
+      let lineWidth = +document.getElementById('lineWidth').value;
+      let angle = +document.getElementById('angle').value;
+      let shiftX = pitch * document.getElementById('phaseX').value / 360.0;
+      let shiftY = pitch * document.getElementById('phaseY').value / 360.0;
+      
+      // Create a pixel (pre-rendering)
+      // See: https://www.html5rocks.com/ja/tutorials/canvas/performance/#toc-pre-render
+      let m_canvas = document.createElement('canvas');
+      m_canvas.width = canvas.width;
+      m_canvas.height = canvas.height;
+      let m_ctx = m_canvas.getContext('2d');
+
+      m_ctx.lineWidth = lineWidth;
+      m_ctx.strokeStyle = "rgb(60, 60, 60)";
+
+      let angle_rad = angle * Math.PI / 180.0;
+      m_ctx.translate(canvas.width/2, canvas.height/2);
+      m_ctx.rotate(angle_rad);
+      m_ctx.translate(-canvas.width/2, -canvas.height/2);
+
+      for(i=0; i < canvas.width; i=i+pitch) {
+        for(j=0; j < canvas.height; j=j+pitch) {
+          m_ctx.strokeRect(i, j, pitch, pitch);
+        }
+      }
+          
+      ctx.drawImage(m_canvas, 0, 0);
     }
 
     function drawPixels(canvas, ctx) {
@@ -262,10 +260,10 @@
       console.log("pixelSize is " + pixelSize + ", delta is " + delta + ".");
       // Create a pixel (pre-rendering)
       // See: https://www.html5rocks.com/ja/tutorials/canvas/performance/#toc-pre-render
-      var m_canvas = document.createElement('canvas');
+      let m_canvas = document.createElement('canvas');
       m_canvas.width = pixelSize;
       m_canvas.height = pixelSize;
-      var m_ctx = m_canvas.getContext('2d');
+      let m_ctx = m_canvas.getContext('2d');
       if(currentDevice.pattern == 'iPhone5s'){
         m_ctx.fillStyle = "rgb(255, 64, 64)";
         m_ctx.fillRect(0, delta, delta, pixelSize-delta);
@@ -368,8 +366,8 @@
       let numOfPixelsX = +document.getElementById('numOfPixelsX').value;
       let numOfPixelsY = +document.getElementById('numOfPixelsY').value;
       console.log("numOfPixelsX, numOfPixelsY = " + numOfPixelsX + ", " + numOfPixelsY);
-      ctx.strokeStyle = "red";
-      ctx.lineWidth = 3;
+      ctx.strokeStyle = "rgb(255,0,0)";
+      ctx.lineWidth = 10;
       ctx.strokeRect(50, 30, numOfPixelsX, numOfPixelsY);
     }
   </script>  
