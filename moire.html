@@ -1,6 +1,6 @@
 <html>
 
-<body onload="deviceChanged();draw();">
+<body onload="createInitialPhaseTable();deviceChanged();draw();">
 
   <div style="margin-bottom: 15px;">
     <img src="https://www.asahi-kasei.com/common/images/logo-01.png" height="20" />
@@ -19,7 +19,11 @@
     <input id="density" type="text" value="4" name="density" maxLength="2" size="2" />
   </div>
 
-  <h2>Mobile Phone</h2>
+  <h2>Mobile Phone Display</h2>
+  <div>
+    <label for="isDrawPixel">Draw Pixel</label>
+    <input type="checkbox" id="isDrawPixel" name="isDrawPixel" value="draw" checked />
+  </div>
   <div>
     <label for="device">Device</label>
     <select id="device" name="device" onchange="deviceChanged()">
@@ -33,7 +37,7 @@
     <input id="pixelSize" type="text" value="55.5" name="pixelSize" maxlength="5" size="5" />
   </div>
 
-  <h2>Antenna</h2>
+  <h2>Antenna Grid</h2>
   <div>
     <label for="isDrawGrid">Draw Grid</label>
     <input type="checkbox" id="isDrawGrid" name="isDrawGrid" value="draw" checked />
@@ -52,10 +56,23 @@
   </div>
 
   <div>
-    <label for="phaseX">Phase X(&deg;)</label>
-    <input id="phaseX" type="text" value="0" name="phaseX" maxlength="4" size="4" />
-    <label for="phaseY">Phase Y(&deg;)</label>
-    <input id="phaseY" type="text" value="0" name="phaseY" maxlength="4" size="4" />
+    Phase: 
+    <a id="togglePhaseTable" href="#" onclick="togglePhaseTable()">Show Phase Table</a>
+  </div>
+  <div id="phaseTableArea" style="display: none;">
+    <div>
+      <label for="numPhaseX">X:</label>
+      <input type="text" id="numPhaseX" name="numPhaseX" value="100" maxlength="4" size="4" />
+      <label for="numPhaseY">Y:</label>
+      <input type="text" id="numPhaseY" name="numPhaseY" value="100" maxlength="4" size="4" />
+    </div>
+    <div>
+      <button onClick="createInitialPhaseTable()">Reset table</button>
+    </div>
+    <div>
+      Phase table is described in JSON format. X - horizontal, Y - diagonal.
+      <textarea id="phaseTable" style="width: 100%; height:20%;"></textarea>
+    </div>
   </div>
 
   <h1>Simulate</h1>
@@ -114,6 +131,16 @@
     var devices = [iPhone11Pro, iPhone5s];
     var currentDevice = iPhone11Pro;
 
+    function createInitialPhaseTable() {
+      let nx = +document.getElementById('numPhaseX').value;
+      let ny = +document.getElementById('numPhaseY').value;
+      let tbl = new Array(nx);
+      for(let y=0; y < ny; y++) {
+        tbl[y] = new Array(nx).fill(0);
+      }
+      document.getElementById('phaseTable').value = JSON.stringify(tbl);
+    }
+
     function deviceChanged() {
       let model = document.getElementById('device').value;
       let selected;
@@ -131,6 +158,17 @@
           selected.pixel_x + " x " + selected.pixel_y + " pixels";
 
       currentDevice = selected;
+    }
+
+    function togglePhaseTable() {
+      let state = document.getElementById('phaseTableArea').style.display;
+      if(state == "block") {
+        document.getElementById('phaseTableArea').style.display = "none";
+        document.getElementById('togglePhaseTable').innerText = "Show Phase Table";
+      } else {
+        document.getElementById('phaseTableArea').style.display = "block";
+        document.getElementById('togglePhaseTable').innerText = "Hide Phase Table";
+      }
     }
 
     function draw() {
@@ -182,7 +220,10 @@
       //
       // Draw pixels
       //
-      drawPixels(canvas, ctx);
+      let isDrawPixel = document.getElementById('isDrawPixel').checked;
+      if(isDrawPixel) {
+        drawPixels(canvas, ctx);
+      }
 
       //
       // Draw grids
@@ -222,11 +263,7 @@
       let pitch = +document.getElementById('gridPitch').value;
       let lineWidth = +document.getElementById('lineWidth').value;
       let angle = +document.getElementById('angle').value;
-      let shiftX = pitch * document.getElementById('phaseX').value / 360.0;
-      let shiftY = pitch * document.getElementById('phaseY').value / 360.0;
       
-      // Create a pixel (pre-rendering)
-      // See: https://www.html5rocks.com/ja/tutorials/canvas/performance/#toc-pre-render
       let m_canvas = document.createElement('canvas');
       m_canvas.width = canvas.width;
       m_canvas.height = canvas.height;
@@ -240,9 +277,15 @@
       m_ctx.rotate(angle_rad);
       m_ctx.translate(-canvas.width/2, -canvas.height/2);
 
-      for(i=0; i < canvas.width; i=i+pitch) {
-        for(j=0; j < canvas.height; j=j+pitch) {
-          m_ctx.strokeRect(i, j, pitch, pitch);
+      let nx = Math.floor(canvas.width / pitch);
+      let ny = Math.floor(canvas.height / pitch);
+      console.log('nx=' + nx + ',ny=' + ny);
+
+      phaseTable = JSON.parse(document.getElementById('phaseTable').value);
+
+      for(i=0; i < nx; i++) {
+        for(j=0; j < ny; j++) {
+          m_ctx.strokeRect(i*pitch + pitch*phaseTable[j][i], j*pitch, pitch, pitch);
         }
       }
           
@@ -258,6 +301,7 @@
       let normGreen = Math.sqrt((pixelSize/2.0-2.0*margin)*(pixelSize/2.0-2.0*margin)/2.0); // length of green dot
       let device = document.getElementById('device').value;
       console.log("pixelSize is " + pixelSize + ", delta is " + delta + ".");
+
       // Create a pixel (pre-rendering)
       // See: https://www.html5rocks.com/ja/tutorials/canvas/performance/#toc-pre-render
       let m_canvas = document.createElement('canvas');
@@ -280,6 +324,7 @@
         m_ctx.fillStyle = "rgb(64, 64, 255)";
         m_ctx.fillRect(pixelSize/2 + margin, pixelSize/2 + margin, pixelSize/2 - 2*margin, pixelSize/2 - 2*margin);
       }
+
       // Fill the area with pixels
       for(i=0; i < canvas.width; i=i+pixelSize){
         for(j=0; j < canvas.height; j=j+pixelSize){
