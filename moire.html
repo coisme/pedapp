@@ -70,8 +70,23 @@
       <button onClick="createInitialPhaseTable()">Reset table</button>
     </div>
     <div>
-      Phase table is described in JSON format. X - horizontal, Y - diagonal.
+      Phase Table is described in JSON format. X - horizontal, Y - diagonal.
       <textarea id="phaseTable" style="width: 100%; height:20%;"></textarea>
+    </div>
+    <div>
+      <p>
+        You can use <a href="phase_template.xlsx">this template excel file</a> to create Phase Table. Steps to create:
+        <ol>
+          <li>Edit the Phase Table with Excel</li>
+          <li>Export from <code>File</code> > <code>Export</code> > <code>CSV</code></li>
+          <li>Remove the fist line, starts from #HEADER ~, and the comma at the very last of the CSV file</li>
+          <li>Copy and paste the table to the text area above</li>
+        </ol>
+      </p>
+    </div>
+    <div>
+      <label for="isRandomPhase">Random Phase for phase > 0</label>
+      <input type="checkbox" id="isRandomPhase" name="isRandomPhase" value="random" />
     </div>
   </div>
 
@@ -283,9 +298,15 @@
 
       phaseTable = JSON.parse(document.getElementById('phaseTable').value);
 
+      let isRandomPhase = document.getElementById('isRandomPhase').checked;
+
       for(i=0; i < nx; i++) {
         for(j=0; j < ny; j++) {
-          m_ctx.strokeRect(i*pitch + pitch*phaseTable[j][i], j*pitch, pitch, pitch);
+          if(isRandomPhase) {
+            m_ctx.strokeRect(i*pitch + pitch*((phaseTable[j][i] > 0) ? (Math.random() - 0.5) : 0), j*pitch, pitch, pitch);
+          } else {
+            m_ctx.strokeRect(i*pitch + pitch*phaseTable[j][i], j*pitch, pitch, pitch);
+          }
         }
       }
           
