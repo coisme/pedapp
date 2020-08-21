@@ -10,9 +10,9 @@
   
   <div>
     <label for="numOfPixelsX">Number of Pixels (X)</label>
-    <input id="numOfPixelsX" type="text" value="60" name="numOfPixelsX" maxLength="4" size="4" />
+    <input id="numOfPixelsX" type="text" value="100" name="numOfPixelsX" maxLength="4" size="4" />
     <label for="numOfPixelsY">Number of Pixels (Y)</label>
-    <input id="numOfPixelsY" type="text" value="40" name="numOfPixelsY" maxLength="4" size="4" />
+    <input id="numOfPixelsY" type="text" value="60" name="numOfPixelsY" maxLength="4" size="4" />
   </div>
   <div>
     <label for="density">Density</label>
@@ -21,7 +21,7 @@
 
   <h2>Mobile Phone Display</h2>
   <div>
-    <label for="isDrawPixel">Draw Pixel</label>
+    <label for="isDrawPixel">Draw Display Pixel</label>
     <input type="checkbox" id="isDrawPixel" name="isDrawPixel" value="draw" checked />
   </div>
   <div>
@@ -57,21 +57,31 @@
 
   <div>
     Phase: 
-    <a id="togglePhaseTable" href="#" onclick="togglePhaseTable()">Show Phase Table</a>
+    <a id="togglePhaseTable" href="#" onclick="togglePhaseTable()">Edit Phase Table</a>
   </div>
-  <div id="phaseTableArea" style="display: none;">
+  <div id="phaseTableArea" style="display: none; background-color: lightgray; padding: 10px;">
+    <h3>Phase Table</h3>
     <div>
-      <label for="numPhaseX">X:</label>
-      <input type="text" id="numPhaseX" name="numPhaseX" value="100" maxlength="4" size="4" />
-      <label for="numPhaseY">Y:</label>
-      <input type="text" id="numPhaseY" name="numPhaseY" value="100" maxlength="4" size="4" />
+      <label for="numPhase_X">X:</label>
+      <input type="text" id="numPhase_X" name="numPhase_X" value="120" maxlength="4" size="4" />
+      <label for="numPhase_Y">Y:</label>
+      <input type="text" id="numPhase_Y" name="numPhase_Y" value="120" maxlength="4" size="4" />
     </div>
     <div>
       <button onClick="createInitialPhaseTable()">Reset table</button>
     </div>
     <div>
-      Phase Table is described in JSON format. X - horizontal, Y - diagonal.
-      <textarea id="phaseTable" style="width: 100%; height:20%;"></textarea>
+      <p>
+        Phase Table, which is an array of arrays, is described in JSON format. X - horizontal, Y - diagonal.
+      </p>
+      <div>
+        <label for="phaseTableX">Phase Table X</label>
+        <textarea id="phaseTableX" name="phaseTableX" style="width: 100%; height:20%;"></textarea>  
+      </div>
+      <div>
+        <label for="phaseTableY">Phase Table Y</label>
+        <textarea id="phaseTableY" name="phaseTableY" style="width: 100%; height:20%;"></textarea>  
+      </div>
     </div>
     <div>
       <p>
@@ -79,13 +89,13 @@
         <ol>
           <li>Edit the Phase Table with Excel</li>
           <li>Export from <code>File</code> > <code>Export</code> > <code>CSV</code></li>
-          <li>Remove the fist line, starts from #HEADER ~, and the comma at the very last of the CSV file</li>
+          <li>Remove the fist line, starts from #HEADER ~, and the comma at the very end of the CSV file</li>
           <li>Copy and paste the table to the text area above</li>
         </ol>
       </p>
     </div>
     <div>
-      <label for="isRandomPhase">Random Phase for phase > 0</label>
+      <label for="isRandomPhase">(Experimental feature) Apply random phase for abs(phase) > 0</label>
       <input type="checkbox" id="isRandomPhase" name="isRandomPhase" value="random" />
     </div>
   </div>
@@ -97,7 +107,7 @@
 
   <h2>Simulated Area</h2>
   <p>
-    Gray area means entire screen. Red rectangle shows the simulated area size.
+    The gray area means entire screen. The red rectangle shows the simulated area size.
   </p>
   <div id="guideArea">
     <canvas id="guide">your browser does not support the canvas tag</canvas>
@@ -126,6 +136,14 @@
   }
   </script>
 
+  <footer>
+    <p>
+      <small>
+        &copy; 2020 Asahi Kasei, Created by Osamu Koizumi
+      </small>
+    </p>
+  </footer>
+
   <script type="text/javascript">
     // A technique in Javascript
     // https://stackoverflow.com/questions/24355508/using-a-textbox-to-take-in-an-integer-value-for-use-in-javascript-function-is-t
@@ -147,13 +165,14 @@
     var currentDevice = iPhone11Pro;
 
     function createInitialPhaseTable() {
-      let nx = +document.getElementById('numPhaseX').value;
-      let ny = +document.getElementById('numPhaseY').value;
+      let nx = +document.getElementById('numPhase_X').value;
+      let ny = +document.getElementById('numPhase_Y').value;
       let tbl = new Array(nx);
       for(let y=0; y < ny; y++) {
         tbl[y] = new Array(nx).fill(0);
       }
-      document.getElementById('phaseTable').value = JSON.stringify(tbl);
+      document.getElementById('phaseTableX').value = JSON.stringify(tbl);
+      document.getElementById('phaseTableY').value = JSON.stringify(tbl);
     }
 
     function deviceChanged() {
@@ -179,7 +198,7 @@
       let state = document.getElementById('phaseTableArea').style.display;
       if(state == "block") {
         document.getElementById('phaseTableArea').style.display = "none";
-        document.getElementById('togglePhaseTable').innerText = "Show Phase Table";
+        document.getElementById('togglePhaseTable').innerText = "Edit Phase Table";
       } else {
         document.getElementById('phaseTableArea').style.display = "block";
         document.getElementById('togglePhaseTable').innerText = "Hide Phase Table";
@@ -296,16 +315,38 @@
       let ny = Math.floor(canvas.height / pitch);
       console.log('nx=' + nx + ',ny=' + ny);
 
-      phaseTable = JSON.parse(document.getElementById('phaseTable').value);
+      let phaseTableX;
+      try{
+        phaseTableX = JSON.parse(document.getElementById('phaseTableX').value);
+      } catch(error) {
+        document.getElementById('phaseTableX').style.backgroundColor = "lightsalmon";
+      }
+
+      let phaseTableY;
+      try{
+        phaseTableY = JSON.parse(document.getElementById('phaseTableY').value);
+      } catch(error) {
+        document.getElementById('phaseTableX').style.backgroundColor = "lightsalmon";
+      }
+
 
       let isRandomPhase = document.getElementById('isRandomPhase').checked;
 
       for(i=0; i < nx; i++) {
         for(j=0; j < ny; j++) {
           if(isRandomPhase) {
-            m_ctx.strokeRect(i*pitch + pitch*((phaseTable[j][i] > 0) ? (Math.random() - 0.5) : 0), j*pitch, pitch, pitch);
+            m_ctx.strokeRect(
+              i*pitch + pitch*((Math.abs(phaseTableX[j][i]) > 0) ? (Math.random() - 0.5) : 0),
+              j*pitch + pitch*((Math.abs(phaseTableY[j][i]) > 0) ? (Math.random() - 0.5) : 0),
+              pitch, pitch
+            );
           } else {
-            m_ctx.strokeRect(i*pitch + pitch*phaseTable[j][i], j*pitch, pitch, pitch);
+            m_ctx.strokeRect(
+              i*pitch + pitch*phaseTableX[j][i],
+              j*pitch + pitch*phaseTableY[j][i],
+              pitch,
+              pitch
+            );
           }
         }
       }
@@ -436,7 +477,7 @@
       ctx.lineWidth = 10;
       ctx.strokeRect(50, 30, numOfPixelsX, numOfPixelsY);
     }
-  </script>  
+  </script>
   
 </body>
 
